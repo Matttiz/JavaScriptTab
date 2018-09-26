@@ -1,6 +1,6 @@
 file://home/matti/Kodowanie/JavaScript/Testowanie/Lib/test.js
 
-google-chrome-stable --disable-web-security --allow-file-access-from-files 
+& "C:\Program Files (x86)\Google\Chrome\Application\chrome.exe" --disable-web-security --allow-file-access-from-files 
 --user-data-dir
 google-chrome-stable --disable-web-security --allow-file-access-from-files 
 --user-data-dir
