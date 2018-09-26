@@ -1,0 +1,35 @@
+javascript:(
+  function() {  function loadLibrary() { 
+    var filePath = "https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.5.0-beta4/html2canvas.js";
+    var ele = document.createElement("script");
+    ele.setAttribute("src", filePath);
+    document.head.appendChild(ele);
+  }
+  function b64toBlob(b64Data, contentType, sliceSize) {
+        contentType = contentType || '';
+        sliceSize = sliceSize || 512;
+        var byteCharacters = atob(b64Data);
+        var byteArrays = [];
+        for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+            var slice = byteCharacters.slice(offset, offset + sliceSize);
+            var byteNumbers = new Array(slice.length);
+            for (var i = 0; i < slice.length; i++) {
+                byteNumbers[i] = slice.charCodeAt(i);
+            }
+            var byteArray = new Uint8Array(byteNumbers);
+            byteArrays.push(byteArray);
+        }
+      var blob = new Blob(byteArrays, {type: contentType});
+      return blob;
+}
+
+html2canvas(document.body).then(function(canvas) {
+    var base64image = canvas.toDataURL("image/png");
+    var block = base64image.split(";");
+    var mimeType = block[0].split(":")[1];
+    var realData = block[1].split(",")[1];
+    var canvasBlob = b64toBlob(realData, mimeType);
+    window.saveAs(canvasBlob, "yourwebsite_screenshot.png");
+});
+}
+)(); 
