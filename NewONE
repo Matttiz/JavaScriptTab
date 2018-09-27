@@ -1,0 +1,77 @@
+javascript:(
+    function() { 
+        function b64toBlob(b64Data, contentType, sliceSize) {            
+            contentType = contentType || '';
+            sliceSize = sliceSize || 512;
+            var byteCharacters = atob(b64Data);
+            var byteArrays = [];
+            for (var offset = 0; offset < byteCharacters.length; offset += sliceSize) {
+                var slice = byteCharacters.slice(offset, offset + sliceSize);
+                var byteNumbers = new Array(slice.length);
+                for (var i = 0; i < slice.length; i++) {
+                    byteNumbers[i] = slice.charCodeAt(i);
+                }
+                var byteArray = new Uint8Array(byteNumbers);
+                byteArrays.push(byteArray);
+            }
+            var blob = new Blob(byteArrays, {type: contentType});
+            return blob;
+        };
+
+
+        function saveAs(uri, filename) {
+            var link = document.createElement('a');
+            if (typeof link.download === 'string') {
+                link.href = uri;
+                link.download = filename;
+                document.body.appendChild(link);
+                link.click();
+                document.body.removeChild(link);
+            } else {
+                window.open(uri);
+            };
+        };
+        
+        window.saveAs || ( window.saveAs = (window.navigator.msSaveBlob ? function(b,n){ return window.navigator.msSaveBlob(b,n); } : false) || window.webkitSaveAs || window.mozSaveAs || window.msSaveAs || 
+        (function(){
+            window.URL || (window.URL = window.webkitURL);
+            if(!window.URL){
+                return false;
+            }
+            return function(blob,name){
+                var url = URL.createObjectURL(blob);
+                if( "download" in document.createElement('a') ){
+                    var a = document.createElement('a');
+                    a.setAttribute('href', url);
+                    a.setAttribute('download', name);
+                    var clickEvent = document.createEvent ("MouseEvent");
+                    clickEvent.initMouseEvent ("click", true, true, window, 0, 
+                        event.screenX, event.screenY, event.clientX, event.clientY, 
+                        event.ctrlKey, event.altKey, event.shiftKey, event.metaKey, 
+                        0, null);
+                    a.dispatchEvent (clickEvent);
+                }
+                else{
+                    window.open(url, '_blank', '');
+                }
+            };
+        })() ); 
+        
+        async function loadScript(url) {
+            let response = await fetch(url);
+            let script = await response.text();
+            eval(script);
+        }
+
+        let scriptUrl = 'https://cdnjs.cloudflare.com/ajax/libs/html2canvas/0.4.1/html2canvas.js'
+        loadScript(scriptUrl);
+        html2canvas(document.body).then(function(canvas) {
+            var base64image = canvas.toDataURL("image/png");
+            var block = base64image.split(";");
+            var mimeType = block[0].split(":")[1];
+            var realData = block[1].split(",")[1];
+            var canvasBlob = b64toBlob(realData, mimeType);
+            window.saveAs(canvasBlob, "yourwebsite_screenshot.png");
+        });
+  }
+)(); 
