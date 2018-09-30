@@ -1,5 +1,5 @@
 /*!
- * html2canvas 1.0.0-alpha.12 <https://html2canvas.hertzen.com>
+ * html2canvas 1.0.0-alpha.8 <https://html2canvas.hertzen.com>
  * Copyright (c) 2018 Niklas von Hertzen <https://hertzen.com>
  * Released under MIT License
  */
@@ -341,84 +341,6 @@ var TRANSPARENT = exports.TRANSPARENT = new Color([0, 0, 0, 0]);
 Object.defineProperty(exports, "__esModule", {
     value: true
 });
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var LENGTH_WITH_UNIT = /([\d.]+)(px|r?em|%)/i;
-
-var LENGTH_TYPE = exports.LENGTH_TYPE = {
-    PX: 0,
-    PERCENTAGE: 1
-};
-
-var Length = function () {
-    function Length(value) {
-        _classCallCheck(this, Length);
-
-        this.type = value.substr(value.length - 1) === '%' ? LENGTH_TYPE.PERCENTAGE : LENGTH_TYPE.PX;
-        var parsedValue = parseFloat(value);
-        if (true && isNaN(parsedValue)) {
-            console.error('Invalid value given for Length: "' + value + '"');
-        }
-        this.value = isNaN(parsedValue) ? 0 : parsedValue;
-    }
-
-    _createClass(Length, [{
-        key: 'isPercentage',
-        value: function isPercentage() {
-            return this.type === LENGTH_TYPE.PERCENTAGE;
-        }
-    }, {
-        key: 'getAbsoluteValue',
-        value: function getAbsoluteValue(parentLength) {
-            return this.isPercentage() ? parentLength * (this.value / 100) : this.value;
-        }
-    }], [{
-        key: 'create',
-        value: function create(v) {
-            return new Length(v);
-        }
-    }]);
-
-    return Length;
-}();
-
-exports.default = Length;
-
-
-var getRootFontSize = function getRootFontSize(container) {
-    var parent = container.parent;
-    return parent ? getRootFontSize(parent) : parseFloat(container.style.font.fontSize);
-};
-
-var calculateLengthFromValueWithUnit = exports.calculateLengthFromValueWithUnit = function calculateLengthFromValueWithUnit(container, value, unit) {
-    switch (unit) {
-        case 'px':
-        case '%':
-            return new Length(value + unit);
-        case 'em':
-        case 'rem':
-            var length = new Length(value);
-            length.value *= unit === 'em' ? parseFloat(container.style.font.fontSize) : getRootFontSize(container);
-            return length;
-        default:
-            // TODO: handle correctly if unknown unit is used
-            return new Length('0');
-    }
-};
-
-/***/ }),
-/* 2 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
 exports.parseBoundCurves = exports.calculatePaddingBoxPath = exports.calculateBorderBoxPath = exports.parsePathForBorder = exports.parseDocumentSize = exports.calculateContentBox = exports.calculatePaddingBox = exports.parseBounds = exports.Bounds = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
@@ -547,32 +469,16 @@ var calculatePaddingBoxPath = exports.calculatePaddingBoxPath = function calcula
 };
 
 var parseBoundCurves = exports.parseBoundCurves = function parseBoundCurves(bounds, borders, borderRadius) {
-    var tlh = borderRadius[CORNER.TOP_LEFT][H].getAbsoluteValue(bounds.width);
-    var tlv = borderRadius[CORNER.TOP_LEFT][V].getAbsoluteValue(bounds.height);
-    var trh = borderRadius[CORNER.TOP_RIGHT][H].getAbsoluteValue(bounds.width);
-    var trv = borderRadius[CORNER.TOP_RIGHT][V].getAbsoluteValue(bounds.height);
-    var brh = borderRadius[CORNER.BOTTOM_RIGHT][H].getAbsoluteValue(bounds.width);
-    var brv = borderRadius[CORNER.BOTTOM_RIGHT][V].getAbsoluteValue(bounds.height);
-    var blh = borderRadius[CORNER.BOTTOM_LEFT][H].getAbsoluteValue(bounds.width);
-    var blv = borderRadius[CORNER.BOTTOM_LEFT][V].getAbsoluteValue(bounds.height);
-
-    var factors = [];
-    factors.push((tlh + trh) / bounds.width);
-    factors.push((blh + brh) / bounds.width);
-    factors.push((tlv + blv) / bounds.height);
-    factors.push((trv + brv) / bounds.height);
-    var maxFactor = Math.max.apply(Math, factors);
-
-    if (maxFactor > 1) {
-        tlh /= maxFactor;
-        tlv /= maxFactor;
-        trh /= maxFactor;
-        trv /= maxFactor;
-        brh /= maxFactor;
-        brv /= maxFactor;
-        blh /= maxFactor;
-        blv /= maxFactor;
-    }
+    var HALF_WIDTH = bounds.width / 2;
+    var HALF_HEIGHT = bounds.height / 2;
+    var tlh = borderRadius[CORNER.TOP_LEFT][H].getAbsoluteValue(bounds.width) < HALF_WIDTH ? borderRadius[CORNER.TOP_LEFT][H].getAbsoluteValue(bounds.width) : HALF_WIDTH;
+    var tlv = borderRadius[CORNER.TOP_LEFT][V].getAbsoluteValue(bounds.height) < HALF_HEIGHT ? borderRadius[CORNER.TOP_LEFT][V].getAbsoluteValue(bounds.height) : HALF_HEIGHT;
+    var trh = borderRadius[CORNER.TOP_RIGHT][H].getAbsoluteValue(bounds.width) < HALF_WIDTH ? borderRadius[CORNER.TOP_RIGHT][H].getAbsoluteValue(bounds.width) : HALF_WIDTH;
+    var trv = borderRadius[CORNER.TOP_RIGHT][V].getAbsoluteValue(bounds.height) < HALF_HEIGHT ? borderRadius[CORNER.TOP_RIGHT][V].getAbsoluteValue(bounds.height) : HALF_HEIGHT;
+    var brh = borderRadius[CORNER.BOTTOM_RIGHT][H].getAbsoluteValue(bounds.width) < HALF_WIDTH ? borderRadius[CORNER.BOTTOM_RIGHT][H].getAbsoluteValue(bounds.width) : HALF_WIDTH;
+    var brv = borderRadius[CORNER.BOTTOM_RIGHT][V].getAbsoluteValue(bounds.height) < HALF_HEIGHT ? borderRadius[CORNER.BOTTOM_RIGHT][V].getAbsoluteValue(bounds.height) : HALF_HEIGHT;
+    var blh = borderRadius[CORNER.BOTTOM_LEFT][H].getAbsoluteValue(bounds.width) < HALF_WIDTH ? borderRadius[CORNER.BOTTOM_LEFT][H].getAbsoluteValue(bounds.width) : HALF_WIDTH;
+    var blv = borderRadius[CORNER.BOTTOM_LEFT][V].getAbsoluteValue(bounds.height) < HALF_HEIGHT ? borderRadius[CORNER.BOTTOM_LEFT][V].getAbsoluteValue(bounds.height) : HALF_HEIGHT;
 
     var topWidth = bounds.width - trh;
     var rightHeight = bounds.height - brv;
@@ -619,7 +525,338 @@ var getCurvePoints = function getCurvePoints(x, y, r1, r2, position) {
 };
 
 /***/ }),
+/* 2 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+exports.calculateLengthFromValueWithUnit = exports.LENGTH_TYPE = undefined;
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _NodeContainer = __webpack_require__(3);
+
+var _NodeContainer2 = _interopRequireDefault(_NodeContainer);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var LENGTH_WITH_UNIT = /([\d.]+)(px|r?em|%)/i;
+
+var LENGTH_TYPE = exports.LENGTH_TYPE = {
+    PX: 0,
+    PERCENTAGE: 1
+};
+
+var Length = function () {
+    function Length(value) {
+        _classCallCheck(this, Length);
+
+        this.type = value.substr(value.length - 1) === '%' ? LENGTH_TYPE.PERCENTAGE : LENGTH_TYPE.PX;
+        var parsedValue = parseFloat(value);
+        if (true && isNaN(parsedValue)) {
+            console.error('Invalid value given for Length: "' + value + '"');
+        }
+        this.value = isNaN(parsedValue) ? 0 : parsedValue;
+    }
+
+    _createClass(Length, [{
+        key: 'isPercentage',
+        value: function isPercentage() {
+            return this.type === LENGTH_TYPE.PERCENTAGE;
+        }
+    }, {
+        key: 'getAbsoluteValue',
+        value: function getAbsoluteValue(parentLength) {
+            return this.isPercentage() ? parentLength * (this.value / 100) : this.value;
+        }
+    }], [{
+        key: 'create',
+        value: function create(v) {
+            return new Length(v);
+        }
+    }]);
+
+    return Length;
+}();
+
+exports.default = Length;
+
+
+var getRootFontSize = function getRootFontSize(container) {
+    var parent = container.parent;
+    return parent ? getRootFontSize(parent) : parseFloat(container.style.font.fontSize);
+};
+
+var calculateLengthFromValueWithUnit = exports.calculateLengthFromValueWithUnit = function calculateLengthFromValueWithUnit(container, value, unit) {
+    switch (unit) {
+        case 'px':
+        case '%':
+            return new Length(value + unit);
+        case 'em':
+        case 'rem':
+            var length = new Length(value);
+            length.value *= unit === 'em' ? parseFloat(container.style.font.fontSize) : getRootFontSize(container);
+            return length;
+        default:
+            // TODO: handle correctly if unknown unit is used
+            return new Length('0');
+    }
+};
+
+/***/ }),
 /* 3 */
+/***/ (function(module, exports, __webpack_require__) {
+
+"use strict";
+
+
+Object.defineProperty(exports, "__esModule", {
+    value: true
+});
+
+var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
+
+var _Color = __webpack_require__(0);
+
+var _Color2 = _interopRequireDefault(_Color);
+
+var _Util = __webpack_require__(4);
+
+var _background = __webpack_require__(5);
+
+var _border = __webpack_require__(12);
+
+var _borderRadius = __webpack_require__(33);
+
+var _display = __webpack_require__(34);
+
+var _float = __webpack_require__(35);
+
+var _font = __webpack_require__(36);
+
+var _letterSpacing = __webpack_require__(37);
+
+var _lineBreak = __webpack_require__(38);
+
+var _listStyle = __webpack_require__(8);
+
+var _margin = __webpack_require__(39);
+
+var _overflow = __webpack_require__(40);
+
+var _overflowWrap = __webpack_require__(18);
+
+var _padding = __webpack_require__(17);
+
+var _position = __webpack_require__(19);
+
+var _textDecoration = __webpack_require__(11);
+
+var _textShadow = __webpack_require__(41);
+
+var _textTransform = __webpack_require__(20);
+
+var _transform = __webpack_require__(42);
+
+var _visibility = __webpack_require__(43);
+
+var _wordBreak = __webpack_require__(44);
+
+var _zIndex = __webpack_require__(45);
+
+var _Bounds = __webpack_require__(1);
+
+var _Input = __webpack_require__(21);
+
+var _ListItem = __webpack_require__(14);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
+
+function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
+
+var INPUT_TAGS = ['INPUT', 'TEXTAREA', 'SELECT'];
+
+var NodeContainer = function () {
+    function NodeContainer(node, parent, resourceLoader, index) {
+        var _this = this;
+
+        _classCallCheck(this, NodeContainer);
+
+        this.parent = parent;
+        this.tagName = node.tagName;
+        this.index = index;
+        this.childNodes = [];
+        this.listItems = [];
+        if (typeof node.start === 'number') {
+            this.listStart = node.start;
+        }
+        var defaultView = node.ownerDocument.defaultView;
+        var scrollX = defaultView.pageXOffset;
+        var scrollY = defaultView.pageYOffset;
+        var style = defaultView.getComputedStyle(node, null);
+        var display = (0, _display.parseDisplay)(style.display);
+
+        var IS_INPUT = node.type === 'radio' || node.type === 'checkbox';
+
+        var position = (0, _position.parsePosition)(style.position);
+
+        this.style = {
+            background: IS_INPUT ? _Input.INPUT_BACKGROUND : (0, _background.parseBackground)(style, resourceLoader),
+            border: IS_INPUT ? _Input.INPUT_BORDERS : (0, _border.parseBorder)(style),
+            borderRadius: (node instanceof defaultView.HTMLInputElement || node instanceof HTMLInputElement) && IS_INPUT ? (0, _Input.getInputBorderRadius)(node) : (0, _borderRadius.parseBorderRadius)(style),
+            color: IS_INPUT ? _Input.INPUT_COLOR : new _Color2.default(style.color),
+            display: display,
+            float: (0, _float.parseCSSFloat)(style.float),
+            font: (0, _font.parseFont)(style),
+            letterSpacing: (0, _letterSpacing.parseLetterSpacing)(style.letterSpacing),
+            listStyle: display === _display.DISPLAY.LIST_ITEM ? (0, _listStyle.parseListStyle)(style) : null,
+            lineBreak: (0, _lineBreak.parseLineBreak)(style.lineBreak),
+            margin: (0, _margin.parseMargin)(style),
+            opacity: parseFloat(style.opacity),
+            overflow: INPUT_TAGS.indexOf(node.tagName) === -1 ? (0, _overflow.parseOverflow)(style.overflow) : _overflow.OVERFLOW.HIDDEN,
+            overflowWrap: (0, _overflowWrap.parseOverflowWrap)(style.overflowWrap ? style.overflowWrap : style.wordWrap),
+            padding: (0, _padding.parsePadding)(style),
+            position: position,
+            textDecoration: (0, _textDecoration.parseTextDecoration)(style),
+            textShadow: (0, _textShadow.parseTextShadow)(style.textShadow),
+            textTransform: (0, _textTransform.parseTextTransform)(style.textTransform),
+            transform: (0, _transform.parseTransform)(style),
+            visibility: (0, _visibility.parseVisibility)(style.visibility),
+            wordBreak: (0, _wordBreak.parseWordBreak)(style.wordBreak),
+            zIndex: (0, _zIndex.parseZIndex)(position !== _position.POSITION.STATIC ? style.zIndex : 'auto')
+        };
+
+        if (this.isTransformed()) {
+            // getBoundingClientRect provides values post-transform, we want them without the transformation
+            node.style.transform = 'matrix(1,0,0,1,0,0)';
+        }
+
+        if (display === _display.DISPLAY.LIST_ITEM) {
+            var listOwner = (0, _ListItem.getListOwner)(this);
+            if (listOwner) {
+                var listIndex = listOwner.listItems.length;
+                listOwner.listItems.push(this);
+                this.listIndex = node.hasAttribute('value') && typeof node.value === 'number' ? node.value : listIndex === 0 ? typeof listOwner.listStart === 'number' ? listOwner.listStart : 1 : listOwner.listItems[listIndex - 1].listIndex + 1;
+            }
+        }
+
+        // TODO move bound retrieval for all nodes to a later stage?
+        if (node.tagName === 'IMG') {
+            node.addEventListener('load', function () {
+                _this.bounds = (0, _Bounds.parseBounds)(node, scrollX, scrollY);
+                _this.curvedBounds = (0, _Bounds.parseBoundCurves)(_this.bounds, _this.style.border, _this.style.borderRadius);
+            });
+        }
+        this.image = getImage(node, resourceLoader);
+        this.bounds = IS_INPUT ? (0, _Input.reformatInputBounds)((0, _Bounds.parseBounds)(node, scrollX, scrollY)) : (0, _Bounds.parseBounds)(node, scrollX, scrollY);
+        this.curvedBounds = (0, _Bounds.parseBoundCurves)(this.bounds, this.style.border, this.style.borderRadius);
+
+        if (true) {
+            this.name = '' + node.tagName.toLowerCase() + (node.id ? '#' + node.id : '') + node.className.toString().split(' ').map(function (s) {
+                return s.length ? '.' + s : '';
+            }).join('');
+        }
+    }
+
+    _createClass(NodeContainer, [{
+        key: 'getClipPaths',
+        value: function getClipPaths() {
+            var parentClips = this.parent ? this.parent.getClipPaths() : [];
+            var isClipped = this.style.overflow !== _overflow.OVERFLOW.VISIBLE;
+
+            return isClipped ? parentClips.concat([(0, _Bounds.calculatePaddingBoxPath)(this.curvedBounds)]) : parentClips;
+        }
+    }, {
+        key: 'isInFlow',
+        value: function isInFlow() {
+            return this.isRootElement() && !this.isFloating() && !this.isAbsolutelyPositioned();
+        }
+    }, {
+        key: 'isVisible',
+        value: function isVisible() {
+            return !(0, _Util.contains)(this.style.display, _display.DISPLAY.NONE) && this.style.opacity > 0 && this.style.visibility === _visibility.VISIBILITY.VISIBLE;
+        }
+    }, {
+        key: 'isAbsolutelyPositioned',
+        value: function isAbsolutelyPositioned() {
+            return this.style.position !== _position.POSITION.STATIC && this.style.position !== _position.POSITION.RELATIVE;
+        }
+    }, {
+        key: 'isPositioned',
+        value: function isPositioned() {
+            return this.style.position !== _position.POSITION.STATIC;
+        }
+    }, {
+        key: 'isFloating',
+        value: function isFloating() {
+            return this.style.float !== _float.FLOAT.NONE;
+        }
+    }, {
+        key: 'isRootElement',
+        value: function isRootElement() {
+            return this.parent === null;
+        }
+    }, {
+        key: 'isTransformed',
+        value: function isTransformed() {
+            return this.style.transform !== null;
+        }
+    }, {
+        key: 'isPositionedWithZIndex',
+        value: function isPositionedWithZIndex() {
+            return this.isPositioned() && !this.style.zIndex.auto;
+        }
+    }, {
+        key: 'isInlineLevel',
+        value: function isInlineLevel() {
+            return (0, _Util.contains)(this.style.display, _display.DISPLAY.INLINE) || (0, _Util.contains)(this.style.display, _display.DISPLAY.INLINE_BLOCK) || (0, _Util.contains)(this.style.display, _display.DISPLAY.INLINE_FLEX) || (0, _Util.contains)(this.style.display, _display.DISPLAY.INLINE_GRID) || (0, _Util.contains)(this.style.display, _display.DISPLAY.INLINE_LIST_ITEM) || (0, _Util.contains)(this.style.display, _display.DISPLAY.INLINE_TABLE);
+        }
+    }, {
+        key: 'isInlineBlockOrInlineTable',
+        value: function isInlineBlockOrInlineTable() {
+            return (0, _Util.contains)(this.style.display, _display.DISPLAY.INLINE_BLOCK) || (0, _Util.contains)(this.style.display, _display.DISPLAY.INLINE_TABLE);
+        }
+    }]);
+
+    return NodeContainer;
+}();
+
+exports.default = NodeContainer;
+
+
+var getImage = function getImage(node, resourceLoader) {
+    if (node instanceof node.ownerDocument.defaultView.SVGSVGElement || node instanceof SVGSVGElement) {
+        var s = new XMLSerializer();
+        return resourceLoader.loadImage('data:image/svg+xml,' + encodeURIComponent(s.serializeToString(node)));
+    }
+    switch (node.tagName) {
+        case 'IMG':
+            // $FlowFixMe
+            var img = node;
+            return resourceLoader.loadImage(img.currentSrc || img.src);
+        case 'CANVAS':
+            // $FlowFixMe
+            var canvas = node;
+            return resourceLoader.loadCanvas(canvas);
+        case 'IFRAME':
+            var iframeKey = node.getAttribute('data-html2canvas-internal-iframe-key');
+            if (iframeKey) {
+                return iframeKey;
+            }
+            break;
+    }
+
+    return null;
+};
+
+/***/ }),
+/* 4 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -651,7 +888,7 @@ var copyCSSStyles = exports.copyCSSStyles = function copyCSSStyles(style, target
 var SMALL_IMAGE = exports.SMALL_IMAGE = 'data:image/gif;base64,R0lGODlhAQABAIAAAAAAAP///yH5BAEAAAAALAAAAAABAAEAAAIBRAA7';
 
 /***/ }),
-/* 4 */
+/* 5 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -666,7 +903,7 @@ var _Color = __webpack_require__(0);
 
 var _Color2 = _interopRequireDefault(_Color);
 
-var _Length = __webpack_require__(1);
+var _Length = __webpack_require__(2);
 
 var _Length2 = _interopRequireDefault(_Length);
 
@@ -678,7 +915,7 @@ var _Vector = __webpack_require__(7);
 
 var _Vector2 = _interopRequireDefault(_Vector);
 
-var _Bounds = __webpack_require__(2);
+var _Bounds = __webpack_require__(1);
 
 var _padding = __webpack_require__(17);
 
@@ -1010,7 +1247,7 @@ var parseBackgroundImage = exports.parseBackgroundImage = function parseBackgrou
 };
 
 /***/ }),
-/* 5 */
+/* 6 */
 /***/ (function(module, exports, __webpack_require__) {
 
 "use strict";
@@ -1026,252 +1263,6 @@ var PATH = exports.PATH = {
 };
 
 /***/ }),
-/* 6 */
-/***/ (function(module, exports, __webpack_require__) {
-
-"use strict";
-
-
-Object.defineProperty(exports, "__esModule", {
-    value: true
-});
-
-var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
-
-var _Color = __webpack_require__(0);
-
-var _Color2 = _interopRequireDefault(_Color);
-
-var _Util = __webpack_require__(3);
-
-var _background = __webpack_require__(4);
-
-var _border = __webpack_require__(12);
-
-var _borderRadius = __webpack_require__(33);
-
-var _display = __webpack_require__(34);
-
-var _float = __webpack_require__(35);
-
-var _font = __webpack_require__(36);
-
-var _letterSpacing = __webpack_require__(37);
-
-var _lineBreak = __webpack_require__(38);
-
-var _listStyle = __webpack_require__(8);
-
-var _margin = __webpack_require__(39);
-
-var _overflow = __webpack_require__(40);
-
-var _overflowWrap = __webpack_require__(18);
-
-var _padding = __webpack_require__(17);
-
-var _position = __webpack_require__(19);
-
-var _textDecoration = __webpack_require__(11);
-
-var _textShadow = __webpack_require__(41);
-
-var _textTransform = __webpack_require__(20);
-
-var _transform = __webpack_require__(42);
-
-var _visibility = __webpack_require__(43);
-
-var _wordBreak = __webpack_require__(44);
-
-var _zIndex = __webpack_require__(45);
-
-var _Bounds = __webpack_require__(2);
-
-var _Input = __webpack_require__(21);
-
-var _ListItem = __webpack_require__(14);
-
-function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
-
-function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
-
-var INPUT_TAGS = ['INPUT', 'TEXTAREA', 'SELECT'];
-
-var NodeContainer = function () {
-    function NodeContainer(node, parent, resourceLoader, index) {
-        var _this = this;
-
-        _classCallCheck(this, NodeContainer);
-
-        this.parent = parent;
-        this.tagName = node.tagName;
-        this.index = index;
-        this.childNodes = [];
-        this.listItems = [];
-        if (typeof node.start === 'number') {
-            this.listStart = node.start;
-        }
-        var defaultView = node.ownerDocument.defaultView;
-        var scrollX = defaultView.pageXOffset;
-        var scrollY = defaultView.pageYOffset;
-        var style = defaultView.getComputedStyle(node, null);
-        var display = (0, _display.parseDisplay)(style.display);
-
-        var IS_INPUT = node.type === 'radio' || node.type === 'checkbox';
-
-        var position = (0, _position.parsePosition)(style.position);
-
-        this.style = {
-            background: IS_INPUT ? _Input.INPUT_BACKGROUND : (0, _background.parseBackground)(style, resourceLoader),
-            border: IS_INPUT ? _Input.INPUT_BORDERS : (0, _border.parseBorder)(style),
-            borderRadius: (node instanceof defaultView.HTMLInputElement || node instanceof HTMLInputElement) && IS_INPUT ? (0, _Input.getInputBorderRadius)(node) : (0, _borderRadius.parseBorderRadius)(style),
-            color: IS_INPUT ? _Input.INPUT_COLOR : new _Color2.default(style.color),
-            display: display,
-            float: (0, _float.parseCSSFloat)(style.float),
-            font: (0, _font.parseFont)(style),
-            letterSpacing: (0, _letterSpacing.parseLetterSpacing)(style.letterSpacing),
-            listStyle: display === _display.DISPLAY.LIST_ITEM ? (0, _listStyle.parseListStyle)(style) : null,
-            lineBreak: (0, _lineBreak.parseLineBreak)(style.lineBreak),
-            margin: (0, _margin.parseMargin)(style),
-            opacity: parseFloat(style.opacity),
-            overflow: INPUT_TAGS.indexOf(node.tagName) === -1 ? (0, _overflow.parseOverflow)(style.overflow) : _overflow.OVERFLOW.HIDDEN,
-            overflowWrap: (0, _overflowWrap.parseOverflowWrap)(style.overflowWrap ? style.overflowWrap : style.wordWrap),
-            padding: (0, _padding.parsePadding)(style),
-            position: position,
-            textDecoration: (0, _textDecoration.parseTextDecoration)(style),
-            textShadow: (0, _textShadow.parseTextShadow)(style.textShadow),
-            textTransform: (0, _textTransform.parseTextTransform)(style.textTransform),
-            transform: (0, _transform.parseTransform)(style),
-            visibility: (0, _visibility.parseVisibility)(style.visibility),
-            wordBreak: (0, _wordBreak.parseWordBreak)(style.wordBreak),
-            zIndex: (0, _zIndex.parseZIndex)(position !== _position.POSITION.STATIC ? style.zIndex : 'auto')
-        };
-
-        if (this.isTransformed()) {
-            // getBoundingClientRect provides values post-transform, we want them without the transformation
-            node.style.transform = 'matrix(1,0,0,1,0,0)';
-        }
-
-        if (display === _display.DISPLAY.LIST_ITEM) {
-            var listOwner = (0, _ListItem.getListOwner)(this);
-            if (listOwner) {
-                var listIndex = listOwner.listItems.length;
-                listOwner.listItems.push(this);
-                this.listIndex = node.hasAttribute('value') && typeof node.value === 'number' ? node.value : listIndex === 0 ? typeof listOwner.listStart === 'number' ? listOwner.listStart : 1 : listOwner.listItems[listIndex - 1].listIndex + 1;
-            }
-        }
-
-        // TODO move bound retrieval for all nodes to a later stage?
-        if (node.tagName === 'IMG') {
-            node.addEventListener('load', function () {
-                _this.bounds = (0, _Bounds.parseBounds)(node, scrollX, scrollY);
-                _this.curvedBounds = (0, _Bounds.parseBoundCurves)(_this.bounds, _this.style.border, _this.style.borderRadius);
-            });
-        }
-        this.image = getImage(node, resourceLoader);
-        this.bounds = IS_INPUT ? (0, _Input.reformatInputBounds)((0, _Bounds.parseBounds)(node, scrollX, scrollY)) : (0, _Bounds.parseBounds)(node, scrollX, scrollY);
-        this.curvedBounds = (0, _Bounds.parseBoundCurves)(this.bounds, this.style.border, this.style.borderRadius);
-
-        if (true) {
-            this.name = '' + node.tagName.toLowerCase() + (node.id ? '#' + node.id : '') + node.className.toString().split(' ').map(function (s) {
-                return s.length ? '.' + s : '';
-            }).join('');
-        }
-    }
-
-    _createClass(NodeContainer, [{
-        key: 'getClipPaths',
-        value: function getClipPaths() {
-            var parentClips = this.parent ? this.parent.getClipPaths() : [];
-            var isClipped = this.style.overflow !== _overflow.OVERFLOW.VISIBLE;
-
-            return isClipped ? parentClips.concat([(0, _Bounds.calculatePaddingBoxPath)(this.curvedBounds)]) : parentClips;
-        }
-    }, {
-        key: 'isInFlow',
-        value: function isInFlow() {
-            return this.isRootElement() && !this.isFloating() && !this.isAbsolutelyPositioned();
-        }
-    }, {
-        key: 'isVisible',
-        value: function isVisible() {
-            return !(0, _Util.contains)(this.style.display, _display.DISPLAY.NONE) && this.style.opacity > 0 && this.style.visibility === _visibility.VISIBILITY.VISIBLE;
-        }
-    }, {
-        key: 'isAbsolutelyPositioned',
-        value: function isAbsolutelyPositioned() {
-            return this.style.position !== _position.POSITION.STATIC && this.style.position !== _position.POSITION.RELATIVE;
-        }
-    }, {
-        key: 'isPositioned',
-        value: function isPositioned() {
-            return this.style.position !== _position.POSITION.STATIC;
-        }
-    }, {
-        key: 'isFloating',
-        value: function isFloating() {
-            return this.style.float !== _float.FLOAT.NONE;
-        }
-    }, {
-        key: 'isRootElement',
-        value: function isRootElement() {
-            return this.parent === null;
-        }
-    }, {
-        key: 'isTransformed',
-        value: function isTransformed() {
-            return this.style.transform !== null;
-        }
-    }, {
-        key: 'isPositionedWithZIndex',
-        value: function isPositionedWithZIndex() {
-            return this.isPositioned() && !this.style.zIndex.auto;
-        }
-    }, {
-        key: 'isInlineLevel',
-        value: function isInlineLevel() {
-            return (0, _Util.contains)(this.style.display, _display.DISPLAY.INLINE) || (0, _Util.contains)(this.style.display, _display.DISPLAY.INLINE_BLOCK) || (0, _Util.contains)(this.style.display, _display.DISPLAY.INLINE_FLEX) || (0, _Util.contains)(this.style.display, _display.DISPLAY.INLINE_GRID) || (0, _Util.contains)(this.style.display, _display.DISPLAY.INLINE_LIST_ITEM) || (0, _Util.contains)(this.style.display, _display.DISPLAY.INLINE_TABLE);
-        }
-    }, {
-        key: 'isInlineBlockOrInlineTable',
-        value: function isInlineBlockOrInlineTable() {
-            return (0, _Util.contains)(this.style.display, _display.DISPLAY.INLINE_BLOCK) || (0, _Util.contains)(this.style.display, _display.DISPLAY.INLINE_TABLE);
-        }
-    }]);
-
-    return NodeContainer;
-}();
-
-exports.default = NodeContainer;
-
-
-var getImage = function getImage(node, resourceLoader) {
-    if (node instanceof node.ownerDocument.defaultView.SVGSVGElement || node instanceof SVGSVGElement) {
-        var s = new XMLSerializer();
-        return resourceLoader.loadImage('data:image/svg+xml,' + encodeURIComponent(s.serializeToString(node)));
-    }
-    switch (node.tagName) {
-        case 'IMG':
-            // $FlowFixMe
-            var img = node;
-            return resourceLoader.loadImage(img.currentSrc || img.src);
-        case 'CANVAS':
-            // $FlowFixMe
-            var canvas = node;
-            return resourceLoader.loadCanvas(canvas);
-        case 'IFRAME':
-            var iframeKey = node.getAttribute('data-html2canvas-internal-iframe-key');
-            if (iframeKey) {
-                return iframeKey;
-            }
-            break;
-    }
-
-    return null;
-};
-
-/***/ }),
 /* 7 */
 /***/ (function(module, exports, __webpack_require__) {
 
@@ -1282,7 +1273,7 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _Path = __webpack_require__(5);
+var _Path = __webpack_require__(6);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -1316,7 +1307,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.parseListStyle = exports.parseListStyleType = exports.LIST_STYLE_TYPE = exports.LIST_STYLE_POSITION = undefined;
 
-var _background = __webpack_require__(4);
+var _background = __webpack_require__(5);
 
 var LIST_STYLE_POSITION = exports.LIST_STYLE_POSITION = {
     INSIDE: 0,
@@ -2052,9 +2043,9 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.createCounterText = exports.inlineListItemElement = exports.getListOwner = undefined;
 
-var _Util = __webpack_require__(3);
+var _Util = __webpack_require__(4);
 
-var _NodeContainer = __webpack_require__(6);
+var _NodeContainer = __webpack_require__(3);
 
 var _NodeContainer2 = _interopRequireDefault(_NodeContainer);
 
@@ -2376,7 +2367,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _Path = __webpack_require__(5);
+var _Path = __webpack_require__(6);
 
 var _textDecoration = __webpack_require__(11);
 
@@ -2454,7 +2445,6 @@ var CanvasRenderer = function () {
     }, {
         key: 'getTarget',
         value: function getTarget() {
-            this.canvas.getContext('2d').setTransform(1, 0, 0, 1, 0, 0);
             return Promise.resolve(this.canvas);
         }
     }, {
@@ -2569,7 +2559,7 @@ var CanvasRenderer = function () {
                                 var _options$fontMetrics$ = _this4.options.fontMetrics.getMetrics(font),
                                     baseline = _options$fontMetrics$.baseline;
 
-                                _this4.rectangle(text.bounds.left, Math.round(text.bounds.top + baseline), text.bounds.width, 1, textDecorationColor);
+                                _this4.rectangle(text.bounds.left, Math.round(text.bounds.top + text.bounds.height - baseline), text.bounds.width, 1, textDecorationColor);
                                 break;
                             case _textDecoration.TEXT_DECORATION_LINE.OVERLINE:
                                 _this4.rectangle(text.bounds.left, Math.round(text.bounds.top), text.bounds.width, 1, textDecorationColor);
@@ -2643,7 +2633,7 @@ var Logger = function () {
     function Logger(enabled, id, start) {
         _classCallCheck(this, Logger);
 
-        this.enabled = typeof window !== 'undefined' && enabled;
+        this.enabled = enabled;
         this.start = start ? start : Date.now();
         this.id = id;
     }
@@ -2700,7 +2690,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.parsePadding = exports.PADDING_SIDES = undefined;
 
-var _Length = __webpack_require__(1);
+var _Length = __webpack_require__(2);
 
 var _Length2 = _interopRequireDefault(_Length);
 
@@ -2825,7 +2815,7 @@ var _TextContainer = __webpack_require__(9);
 
 var _TextContainer2 = _interopRequireDefault(_TextContainer);
 
-var _background = __webpack_require__(4);
+var _background = __webpack_require__(5);
 
 var _border = __webpack_require__(12);
 
@@ -2841,15 +2831,15 @@ var _Color = __webpack_require__(0);
 
 var _Color2 = _interopRequireDefault(_Color);
 
-var _Length = __webpack_require__(1);
+var _Length = __webpack_require__(2);
 
 var _Length2 = _interopRequireDefault(_Length);
 
-var _Bounds = __webpack_require__(2);
+var _Bounds = __webpack_require__(1);
 
 var _TextBounds = __webpack_require__(22);
 
-var _Util = __webpack_require__(3);
+var _Util = __webpack_require__(4);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -2949,7 +2939,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.parseTextBounds = exports.TextBounds = undefined;
 
-var _Bounds = __webpack_require__(2);
+var _Bounds = __webpack_require__(1);
 
 var _textDecoration = __webpack_require__(11);
 
@@ -3133,7 +3123,13 @@ Object.defineProperty(exports, 'fromCodePoint', {
     }
 });
 
+var _NodeContainer = __webpack_require__(3);
+
+var _NodeContainer2 = _interopRequireDefault(_NodeContainer);
+
 var _overflowWrap = __webpack_require__(18);
+
+function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var breakWords = exports.breakWords = function breakWords(str, parent) {
     var breaker = (0, _cssLineBreak.LineBreaker)(str, {
@@ -3165,7 +3161,7 @@ exports.FontMetrics = undefined;
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _Util = __webpack_require__(3);
+var _Util = __webpack_require__(4);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -3324,6 +3320,8 @@ var Proxy = exports.Proxy = function Proxy(src, options) {
 
 var _extends = Object.assign || function (target) { for (var i = 1; i < arguments.length; i++) { var source = arguments[i]; for (var key in source) { if (Object.prototype.hasOwnProperty.call(source, key)) { target[key] = source[key]; } } } return target; };
 
+var _typeof = typeof Symbol === "function" && typeof Symbol.iterator === "symbol" ? function (obj) { return typeof obj; } : function (obj) { return obj && typeof Symbol === "function" && obj.constructor === Symbol && obj !== Symbol.prototype ? "symbol" : typeof obj; };
+
 var _CanvasRenderer = __webpack_require__(15);
 
 var _CanvasRenderer2 = _interopRequireDefault(_CanvasRenderer);
@@ -3334,12 +3332,19 @@ var _Logger2 = _interopRequireDefault(_Logger);
 
 var _Window = __webpack_require__(28);
 
+var _Bounds = __webpack_require__(1);
+
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
 var html2canvas = function html2canvas(element, conf) {
+    // eslint-disable-next-line no-console
+    if ((typeof console === 'undefined' ? 'undefined' : _typeof(console)) === 'object' && typeof console.log === 'function') {
+        // eslint-disable-next-line no-console
+        console.log('html2canvas ' + "1.0.0-alpha.8");
+    }
+
     var config = conf || {};
     var logger = new _Logger2.default(typeof config.logging === 'boolean' ? config.logging : true);
-    logger.log('html2canvas ' + "1.0.0-alpha.12");
 
     if (true && typeof config.onrendered === 'function') {
         logger.error('onrendered option is deprecated, html2canvas returns a Promise with the canvas as the value');
@@ -3350,6 +3355,17 @@ var html2canvas = function html2canvas(element, conf) {
         return Promise.reject('Provided element is not within a Document');
     }
     var defaultView = ownerDocument.defaultView;
+
+    var scrollX = defaultView.pageXOffset;
+    var scrollY = defaultView.pageYOffset;
+
+    var isDocument = element.tagName === 'HTML' || element.tagName === 'BODY';
+
+    var _ref = isDocument ? (0, _Bounds.parseDocumentSize)(ownerDocument) : (0, _Bounds.parseBounds)(element, scrollX, scrollY),
+        width = _ref.width,
+        height = _ref.height,
+        left = _ref.left,
+        top = _ref.top;
 
     var defaultOptions = {
         async: true,
@@ -3363,6 +3379,10 @@ var html2canvas = function html2canvas(element, conf) {
         scale: defaultView.devicePixelRatio || 1,
         target: new _CanvasRenderer2.default(config.canvas),
         useCORS: false,
+        x: left,
+        y: top,
+        width: Math.ceil(width),
+        height: Math.ceil(height),
         windowWidth: defaultView.innerWidth,
         windowHeight: defaultView.innerHeight,
         scrollX: defaultView.pageXOffset,
@@ -3416,7 +3436,7 @@ var _Feature = __webpack_require__(10);
 
 var _Feature2 = _interopRequireDefault(_Feature);
 
-var _Bounds = __webpack_require__(2);
+var _Bounds = __webpack_require__(1);
 
 var _Clone = __webpack_require__(54);
 
@@ -3450,38 +3470,25 @@ var renderElement = exports.renderElement = function renderElement(element, opti
                 return cloner.resourceLoader.ready();
             }).then(function () {
                 var renderer = new _ForeignObjectRenderer2.default(cloner.documentElement);
-
-                var defaultView = ownerDocument.defaultView;
-                var scrollX = defaultView.pageXOffset;
-                var scrollY = defaultView.pageYOffset;
-
-                var isDocument = element.tagName === 'HTML' || element.tagName === 'BODY';
-
-                var _ref = isDocument ? (0, _Bounds.parseDocumentSize)(ownerDocument) : (0, _Bounds.parseBounds)(element, scrollX, scrollY),
-                    width = _ref.width,
-                    height = _ref.height,
-                    left = _ref.left,
-                    top = _ref.top;
-
                 return renderer.render({
                     backgroundColor: backgroundColor,
                     logger: logger,
                     scale: options.scale,
-                    x: typeof options.x === 'number' ? options.x : left,
-                    y: typeof options.y === 'number' ? options.y : top,
-                    width: typeof options.width === 'number' ? options.width : Math.ceil(width),
-                    height: typeof options.height === 'number' ? options.height : Math.ceil(height),
+                    x: options.x,
+                    y: options.y,
+                    width: options.width,
+                    height: options.height,
                     windowWidth: options.windowWidth,
                     windowHeight: options.windowHeight,
                     scrollX: options.scrollX,
                     scrollY: options.scrollY
                 });
             });
-        }(new _Clone.DocumentCloner(element, options, logger, true, renderElement)) : (0, _Clone.cloneWindow)(ownerDocument, windowBounds, element, options, logger, renderElement).then(function (_ref2) {
-            var _ref3 = _slicedToArray(_ref2, 3),
-                container = _ref3[0],
-                clonedElement = _ref3[1],
-                resourceLoader = _ref3[2];
+        }(new _Clone.DocumentCloner(element, options, logger, true, renderElement)) : (0, _Clone.cloneWindow)(ownerDocument, windowBounds, element, options, logger, renderElement).then(function (_ref) {
+            var _ref2 = _slicedToArray(_ref, 3),
+                container = _ref2[0],
+                clonedElement = _ref2[1],
+                resourceLoader = _ref2[2];
 
             if (true) {
                 logger.log('Document cloned, using computed rendering');
@@ -3500,28 +3507,16 @@ var renderElement = exports.renderElement = function renderElement(element, opti
                     logger.log('Starting renderer');
                 }
 
-                var defaultView = clonedDocument.defaultView;
-                var scrollX = defaultView.pageXOffset;
-                var scrollY = defaultView.pageYOffset;
-
-                var isDocument = clonedElement.tagName === 'HTML' || clonedElement.tagName === 'BODY';
-
-                var _ref4 = isDocument ? (0, _Bounds.parseDocumentSize)(ownerDocument) : (0, _Bounds.parseBounds)(clonedElement, scrollX, scrollY),
-                    width = _ref4.width,
-                    height = _ref4.height,
-                    left = _ref4.left,
-                    top = _ref4.top;
-
                 var renderOptions = {
                     backgroundColor: backgroundColor,
                     fontMetrics: fontMetrics,
                     imageStore: imageStore,
                     logger: logger,
                     scale: options.scale,
-                    x: typeof options.x === 'number' ? options.x : left,
-                    y: typeof options.y === 'number' ? options.y : top,
-                    width: typeof options.width === 'number' ? options.width : Math.ceil(width),
-                    height: typeof options.height === 'number' ? options.height : Math.ceil(height)
+                    x: options.x,
+                    y: options.y,
+                    width: options.width,
+                    height: options.height
                 };
 
                 if (Array.isArray(options.target)) {
@@ -3563,7 +3558,7 @@ var _StackingContext = __webpack_require__(30);
 
 var _StackingContext2 = _interopRequireDefault(_StackingContext);
 
-var _NodeContainer = __webpack_require__(6);
+var _NodeContainer = __webpack_require__(3);
 
 var _NodeContainer2 = _interopRequireDefault(_NodeContainer);
 
@@ -3689,7 +3684,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _NodeContainer = __webpack_require__(6);
+var _NodeContainer = __webpack_require__(3);
 
 var _NodeContainer2 = _interopRequireDefault(_NodeContainer);
 
@@ -3762,7 +3757,7 @@ Object.defineProperty(exports, "__esModule", {
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _Path = __webpack_require__(5);
+var _Path = __webpack_require__(6);
 
 var _Vector = __webpack_require__(7);
 
@@ -3824,7 +3819,7 @@ exports.parseBorderRadius = undefined;
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
-var _Length = __webpack_require__(1);
+var _Length = __webpack_require__(2);
 
 var _Length2 = _interopRequireDefault(_Length);
 
@@ -4088,7 +4083,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.parseMargin = undefined;
 
-var _Length = __webpack_require__(1);
+var _Length = __webpack_require__(2);
 
 var _Length2 = _interopRequireDefault(_Length);
 
@@ -4246,7 +4241,7 @@ Object.defineProperty(exports, "__esModule", {
 });
 exports.parseTransform = undefined;
 
-var _Length = __webpack_require__(1);
+var _Length = __webpack_require__(2);
 
 var _Length2 = _interopRequireDefault(_Length);
 
@@ -5216,7 +5211,7 @@ Object.defineProperty(exports, "__esModule", {
     value: true
 });
 
-var _Path = __webpack_require__(5);
+var _Path = __webpack_require__(6);
 
 function _classCallCheck(instance, Constructor) { if (!(instance instanceof Constructor)) { throw new TypeError("Cannot call a class as a function"); } }
 
@@ -5257,7 +5252,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _Bounds = __webpack_require__(2);
+var _Bounds = __webpack_require__(1);
 
 var _Font = __webpack_require__(25);
 
@@ -5267,7 +5262,7 @@ var _TextContainer = __webpack_require__(9);
 
 var _TextContainer2 = _interopRequireDefault(_TextContainer);
 
-var _background = __webpack_require__(4);
+var _background = __webpack_require__(5);
 
 var _border = __webpack_require__(12);
 
@@ -5590,7 +5585,7 @@ exports.transformWebkitRadialGradientArgs = exports.parseGradient = exports.Radi
 
 var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = []; var _n = true; var _d = false; var _e = undefined; try { for (var _i = arr[Symbol.iterator](), _s; !(_n = (_s = _i.next()).done); _n = true) { _arr.push(_s.value); if (i && _arr.length === i) break; } } catch (err) { _d = true; _e = err; } finally { try { if (!_n && _i["return"]) _i["return"](); } finally { if (_d) throw _e; } } return _arr; } return function (arr, i) { if (Array.isArray(arr)) { return arr; } else if (Symbol.iterator in Object(arr)) { return sliceIterator(arr, i); } else { throw new TypeError("Invalid attempt to destructure non-iterable instance"); } }; }();
 
-var _NodeContainer = __webpack_require__(6);
+var _NodeContainer = __webpack_require__(3);
 
 var _NodeContainer2 = _interopRequireDefault(_NodeContainer);
 
@@ -5600,11 +5595,11 @@ var _Color = __webpack_require__(0);
 
 var _Color2 = _interopRequireDefault(_Color);
 
-var _Length = __webpack_require__(1);
+var _Length = __webpack_require__(2);
 
 var _Length2 = _interopRequireDefault(_Length);
 
-var _Util = __webpack_require__(3);
+var _Util = __webpack_require__(4);
 
 function _interopRequireDefault(obj) { return obj && obj.__esModule ? obj : { default: obj }; }
 
@@ -6077,7 +6072,7 @@ var _slicedToArray = function () { function sliceIterator(arr, i) { var _arr = [
 
 var _createClass = function () { function defineProperties(target, props) { for (var i = 0; i < props.length; i++) { var descriptor = props[i]; descriptor.enumerable = descriptor.enumerable || false; descriptor.configurable = true; if ("value" in descriptor) descriptor.writable = true; Object.defineProperty(target, descriptor.key, descriptor); } } return function (Constructor, protoProps, staticProps) { if (protoProps) defineProperties(Constructor.prototype, protoProps); if (staticProps) defineProperties(Constructor, staticProps); return Constructor; }; }();
 
-var _Bounds = __webpack_require__(2);
+var _Bounds = __webpack_require__(1);
 
 var _Proxy = __webpack_require__(26);
 
@@ -6085,9 +6080,9 @@ var _ResourceLoader = __webpack_require__(55);
 
 var _ResourceLoader2 = _interopRequireDefault(_ResourceLoader);
 
-var _Util = __webpack_require__(3);
+var _Util = __webpack_require__(4);
 
-var _background = __webpack_require__(4);
+var _background = __webpack_require__(5);
 
 var _CanvasRenderer = __webpack_require__(15);
 
@@ -6276,23 +6271,6 @@ var DocumentCloner = exports.DocumentCloner = function () {
                 return tempIframe;
             }
 
-            if (node instanceof HTMLStyleElement && node.sheet && node.sheet.cssRules) {
-                var css = [].slice.call(node.sheet.cssRules, 0).reduce(function (css, rule) {
-                    try {
-                        if (rule && rule.cssText) {
-                            return css + rule.cssText;
-                        }
-                        return css;
-                    } catch (err) {
-                        _this3.logger.log('Unable to access cssText property', rule.name);
-                        return css;
-                    }
-                }, '');
-                var style = node.cloneNode(false);
-                style.textContent = css;
-                return style;
-            }
-
             return node.cloneNode(false);
         }
     }, {
@@ -6317,11 +6295,9 @@ var DocumentCloner = exports.DocumentCloner = function () {
             var contentBefore = (0, _PseudoNodeContent.resolvePseudoContent)(node, styleBefore, this.pseudoContentData);
 
             for (var child = node.firstChild; child; child = child.nextSibling) {
-                if (child.nodeType !== Node.ELEMENT_NODE || child.nodeName !== 'SCRIPT' &&
+                if (child.nodeType !== Node.ELEMENT_NODE ||
                 // $FlowFixMe
-                !child.hasAttribute(IGNORE_ATTRIBUTE) && (typeof this.options.ignoreElements !== 'function' ||
-                // $FlowFixMe
-                !this.options.ignoreElements(child))) {
+                child.nodeName !== 'SCRIPT' && !child.hasAttribute(IGNORE_ATTRIBUTE)) {
                     if (!this.copyStyles || child.nodeName !== 'STYLE') {
                         clone.appendChild(this.cloneNode(child));
                     }
@@ -6600,16 +6576,7 @@ var cloneWindow = exports.cloneWindow = function cloneWindow(ownerDocument, boun
                 documentClone.documentElement.style.left = -bounds.left + 'px';
                 documentClone.documentElement.style.position = 'absolute';
             }
-
-            var result = Promise.resolve([cloneIframeContainer, cloner.clonedReferenceElement, cloner.resourceLoader]);
-
-            var onclone = options.onclone;
-
-            return cloner.clonedReferenceElement instanceof cloneWindow.HTMLElement || cloner.clonedReferenceElement instanceof ownerDocument.defaultView.HTMLElement || cloner.clonedReferenceElement instanceof HTMLElement ? typeof onclone === 'function' ? Promise.resolve().then(function () {
-                return onclone(documentClone);
-            }).then(function () {
-                return result;
-            }) : result : Promise.reject( true ? 'Error finding the ' + referenceElement.nodeName + ' in the cloned document' : '');
+            return cloner.clonedReferenceElement instanceof cloneWindow.HTMLElement || cloner.clonedReferenceElement instanceof ownerDocument.defaultView.HTMLElement || cloner.clonedReferenceElement instanceof HTMLElement ? Promise.resolve([cloneIframeContainer, cloner.clonedReferenceElement, cloner.resourceLoader]) : Promise.reject( true ? 'Error finding the ' + referenceElement.nodeName + ' in the cloned document' : '');
         });
 
         documentClone.open();
@@ -6691,10 +6658,6 @@ var ResourceLoader = function () {
             var _this = this;
 
             if (this.hasResourceInCache(src)) {
-                return src;
-            }
-            if (isBlobImage(src)) {
-                this.cache[src] = _loadImage(src, this.options.imageTimeout || 0);
                 return src;
             }
 
@@ -6895,9 +6858,6 @@ var isInlineImage = function isInlineImage(src) {
 };
 var isInlineBase64Image = function isInlineBase64Image(src) {
     return INLINE_BASE64.test(src);
-};
-var isBlobImage = function isBlobImage(src) {
-    return src.substr(0, 4) === 'blob';
 };
 
 var isSVG = function isSVG(src) {
